@@ -1,0 +1,4 @@
+# These are Linux server scripts. Force LF in the repo and on checkout
+# everywhere — a CRLF shebang breaks with "bad interpreter" on Debian.
+* text=auto eol=lf
+*.sh text eol=lf

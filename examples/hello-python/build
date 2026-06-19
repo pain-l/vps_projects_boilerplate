@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Optional build step. This example uses only the Python standard library.
+# A real app would create a venv and install requirements, e.g.:
+#   python3 -m venv "$DATA_DIR/venv" 2>/dev/null || true
+#   "$DATA_DIR/venv/bin/pip" install -r requirements.txt
+echo "hello-python: stdlib only, nothing to install"

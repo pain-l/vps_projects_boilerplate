@@ -1,0 +1,3 @@
+# project -> localhost port. Keep unique. Apps bind 127.0.0.1 only; Caddy is
+# the sole public listener. Range 3330-3399. free-port.sh hands out the next one.
+drosanfriends	3330

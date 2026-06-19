@@ -1,0 +1,5 @@
+{
+  "name": "hello-bun",
+  "private": true,
+  "module": "server.ts"
+}

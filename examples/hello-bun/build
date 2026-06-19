@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Optional build step, run inside the new release before the symlink swap.
+# This example has no third-party deps. A real bun app would do:
+#   exec /home/deploy/.bun/bin/bun install --frozen-lockfile
+echo "hello-bun: no dependencies to install"

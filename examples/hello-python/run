@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Required entrypoint. Starts the server in the FOREGROUND (exec). Binds
+# $HOST:$PORT from the env. No bun involved — proves the host is language-agnostic.
+exec python3 server.py

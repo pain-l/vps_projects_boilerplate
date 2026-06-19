@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Required entrypoint. Starts the server in the FOREGROUND (exec, so systemd
+# manages the real process and signals work). Binds $HOST:$PORT from the env.
+exec /home/deploy/.bun/bin/bun server.ts

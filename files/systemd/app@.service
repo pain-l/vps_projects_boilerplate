@@ -1,0 +1,24 @@
+[Unit]
+Description=app (%i)
+After=network.target
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/home/deploy/projects/%i/app
+# Language-agnostic launcher: runs the project's own ./run entrypoint (any
+# language). Falls back to `bun server.ts` for legacy bun projects.
+ExecStart=/home/deploy/common/bin/run-app.sh %i
+# Shared env loads first (optional, the - tolerates absence), per-project .env
+# loads last so it overrides shared values (e.g. PORT).
+EnvironmentFile=-/home/deploy/common/env/shared.env
+EnvironmentFile=/home/deploy/projects/%i/.env
+Restart=always
+RestartSec=5
+# small box guard rails (per app):
+MemoryMax=400M
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

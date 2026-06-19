@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Optional custom backup. The framework runs this nightly with $DATA_DIR,
+# $BACKUP_DIR and $DATE exported. This app stores a plain text counter (the
+# sqlite fallback wouldn't catch it), so we snapshot it ourselves.
+set -eu
+[ -f "$DATA_DIR/hits.txt" ] && cp -f "$DATA_DIR/hits.txt" "$BACKUP_DIR/hits-$DATE.txt"

@@ -1,0 +1,9 @@
+# Your real config holds your SSH public key + box-specific choices.
+# Never commit it; commit config.env.example instead.
+config.env
+
+# editor / OS noise
+*.swp
+.DS_Store
+__pycache__/
+*.pyc
