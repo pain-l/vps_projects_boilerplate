@@ -52,7 +52,8 @@ Then add your first project (see [docs/ADDING_A_PROJECT.md](docs/ADDING_A_PROJEC
 
 ```bash
 sudo /home/deploy/common/bin/new-project.sh myapp myapp.example.com
-# point myapp.example.com DNS at the box, then from your dev machine:
+# point myapp.example.com DNS at the box, then from your dev machine
+# (an IPv6 address goes in brackets: deploy@[2001:db8::1]:/home/...):
 git remote add prod deploy@<server-ip>:/home/deploy/projects/myapp/repo.git
 git push prod main
 ```
@@ -68,7 +69,7 @@ git push prod main
 | # | Step | Result |
 |---|------|--------|
 | 1 | Preflight | verifies root, Debian 13, a valid public key |
-| 2 | Base packages | git, curl, sqlite3, openssl, gnupg, ufw, fail2ban, unattended-upgrades |
+| 2 | Base packages | git, curl, sqlite3, openssl, gnupg, cron, ufw, fail2ban, unattended-upgrades |
 | 3 | Timezone | `timedatectl set-timezone` |
 | 4 | Caddy | official apt repo; the only public listener |
 | 5 | `deploy` user | unprivileged, password login disabled |
@@ -111,8 +112,8 @@ vps_projects_boilerplate/
 ## Requirements
 - A fresh **Debian 13 (trixie)** VPS with root SSH access.
 - An SSH **key pair** on your machine (the public key goes in `config.env`).
-- For each project: a domain (or subdomain) whose DNS A record you can point at
-  the box, so Caddy can issue HTTPS.
+- For each project: a domain (or subdomain) whose DNS A record (AAAA on an
+  IPv6-only box) you can point at the box, so Caddy can issue HTTPS.
 
 ## License
 Use it however you like.

@@ -90,8 +90,10 @@ export DEBIAN_FRONTEND=noninteractive
 # ---------------------------------------------------------------------------
 step "Installing base packages"
 apt-get update -qq
+# cron: the nightly backup (step 12) needs crontab, and Debian 13's cloud images
+# ship without it.
 apt-get install -y -qq \
-  ca-certificates curl git gnupg sqlite3 openssl \
+  ca-certificates curl git gnupg sqlite3 openssl cron \
   debian-keyring debian-archive-keyring apt-transport-https \
   ufw fail2ban unattended-upgrades >/dev/null
 ok "base packages installed"
@@ -302,6 +304,12 @@ fi
 # done
 # ---------------------------------------------------------------------------
 PUBIP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+# An IPv6 address (an IPv6-only box) takes an AAAA record, and brackets in an
+# scp-style git remote.
+case "$PUBIP" in
+  *:*) DNS_RECORD="AAAA"; SSH_HOST="[$PUBIP]" ;;
+  *)   DNS_RECORD="A";    SSH_HOST="${PUBIP:-<ip>}" ;;
+esac
 cat <<EOF
 
 ${c_grn}====================================================================${c_off}
@@ -317,10 +325,10 @@ ${c_grn}====================================================================${c_
    sudo $DEPLOY_HOME/common/bin/new-project.sh <name> <domain> [port]
 
  Then from your dev machine (repo must contain an executable ./run):
-   git remote add prod $DEPLOY_USER@${PUBIP:-<ip>}:$DEPLOY_HOME/projects/<name>/repo.git
+   git remote add prod $DEPLOY_USER@$SSH_HOST:$DEPLOY_HOME/projects/<name>/repo.git
    git push prod main
 
- Point the project's DNS A record at ${PUBIP:-this box} and Caddy issues HTTPS.
+ Point the project's DNS $DNS_RECORD record at ${PUBIP:-this box} and Caddy issues HTTPS.
 
  Verify the install:   sudo ./verify.sh
  Full docs:            docs/ARCHITECTURE.md, docs/ADDING_A_PROJECT.md

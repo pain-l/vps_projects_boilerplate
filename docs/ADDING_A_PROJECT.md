@@ -18,9 +18,10 @@ one in 3330–3399 is chosen.
 
 ## 2. Point DNS
 
-Create an **A record** for `<domain>` pointing at the server's public IP. Caddy
-provisions a Let's Encrypt certificate automatically once the name resolves to
-the box. (No DNS = no HTTPS; you can still test locally via the port.)
+Create an **A record** (an **AAAA record** on an IPv6-only box) for `<domain>`
+pointing at the server's public IP. Caddy provisions a Let's Encrypt certificate
+automatically once the name resolves to the box. (No DNS = no HTTPS; you can
+still test locally via the port.)
 
 ## 3. Prepare your repo
 
@@ -38,6 +39,8 @@ git add -A && git commit -m "init"
 git remote add prod deploy@<server-ip>:/home/deploy/projects/myapp/repo.git
 git push prod main
 ```
+
+An IPv6 address goes in brackets: `deploy@[2001:db8::1]:/home/deploy/projects/myapp/repo.git`.
 
 The push prints the deploy log: checkout → build → swap → restart →
 health-check. If health passes you're live at `https://<domain>`. If it fails,

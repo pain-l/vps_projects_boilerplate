@@ -6,7 +6,7 @@
 #   new-project.sh <name> <domain> [port]
 #
 # Creates:  /home/deploy/projects/<name>/{repo.git,releases,shared,backups,.env}
-#           /etc/caddy/sites/<name>.caddy   (reverse_proxy -> localhost:port)
+#           /etc/caddy/sites/<name>.caddy   (reverse_proxy -> 127.0.0.1:port)
 #           enables app@<name>              (uses the shared systemd template)
 #           registers the port in common/PORTS
 #
@@ -37,7 +37,8 @@ PORT=${3:-$(sudo -u "$DEPLOY" "$HOME_DIR/common/bin/free-port.sh")}
 # --- project tree (owned by deploy). No app/ — first deploy creates the
 #     app -> releases/<sha> symlink. ---
 install -d -o "$DEPLOY" -g "$DEPLOY" "$ROOT" "$ROOT/releases" "$ROOT/shared" "$ROOT/backups"
-sudo -u "$DEPLOY" git init --bare "$ROOT/repo.git" >/dev/null
+# -b main: the branch the hook deploys (and no "default branch" hint).
+sudo -u "$DEPLOY" git init --bare -b main "$ROOT/repo.git" >/dev/null
 
 # --- thin push-to-deploy hook: all logic lives in common/bin/deploy-app.sh so
 #     future improvements need no re-scaffolding. ---
@@ -65,9 +66,11 @@ chown "$DEPLOY:$DEPLOY" "$ROOT/.env"
 chmod 600 "$ROOT/.env"
 
 # --- caddy site ---
+# 127.0.0.1, not localhost: apps bind $HOST (127.0.0.1), and for localhost
+# Caddy dials [::1] first, so every request would fail once before falling back.
 tee "/etc/caddy/sites/$NAME.caddy" >/dev/null <<EOF
 $DOMAIN {
-	reverse_proxy localhost:$PORT {
+	reverse_proxy 127.0.0.1:$PORT {
 		header_up X-Real-IP {remote_host}
 	}
 	encode gzip
@@ -81,15 +84,23 @@ echo "$NAME	$PORT" | sudo -u "$DEPLOY" tee -a "$HOME_DIR/common/PORTS" >/dev/nul
 systemctl enable "app@$NAME" >/dev/null
 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 && systemctl reload caddy
 
+# The box's first address: an IPv6 one (an IPv6-only box) takes an AAAA record,
+# and brackets in an scp-style git remote.
+PUBIP="$(hostname -I | awk '{print $1}')"
+case "$PUBIP" in
+  *:*) DNS_RECORD="AAAA"; SSH_HOST="[$PUBIP]" ;;
+  *)   DNS_RECORD="A";    SSH_HOST="$PUBIP" ;;
+esac
+
 cat <<EOF
 
-Scaffolded '$NAME' on localhost:$PORT  ->  https://$DOMAIN
+Scaffolded '$NAME' on 127.0.0.1:$PORT  ->  https://$DOMAIN
 Next:
-  1. point DNS A record for $DOMAIN at this box (Caddy gets HTTPS once it resolves)
+  1. point DNS $DNS_RECORD record for $DOMAIN at this box ($PUBIP); Caddy gets HTTPS once it resolves
   2. your repo must contain an executable  run  (and optionally  build / backup);
      write persistent data to \$DATA_DIR, never into the work tree
   3. add a git remote on your dev machine:
-       git remote add prod $DEPLOY@$(hostname -I | awk '{print $1}'):$ROOT/repo.git
+       git remote add prod $DEPLOY@$SSH_HOST:$ROOT/repo.git
      then  git push prod main   (checks out -> builds -> swaps -> health-checks)
   4. set real secrets in $ROOT/.env  (APP_SECRET was pre-generated)
 
